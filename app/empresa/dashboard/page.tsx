@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 
 import { useAuth } from "@/lib/auth-context";
+import Image from "next/image";
 import {
   getDashboardStats,
   type DashboardStats,
@@ -13,13 +14,7 @@ import {
   orderStatusColors,
   cn,
 } from "@/lib/utils";
-import {
-  Package,
-  DollarSign,
-  ShoppingBag,
-  TrendingUp,
-  Loader2,
-} from "lucide-react";
+import { Package, ShoppingBag, TrendingUp, Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { OrderStatus } from "@/lib/types";
 
@@ -97,7 +92,13 @@ export default function DashboardPage() {
         <div className="bg-card border rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 text-green-600 rounded-lg">
-              <DollarSign className="h-5 w-5" />
+              <Image
+                src="/images/icon-real.png"
+                alt="R$"
+                width={16}
+                height={16}
+                className="object-contain"
+              />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Receita Hoje</p>

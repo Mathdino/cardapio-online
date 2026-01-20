@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils";
-import { MapPin, CircleDollarSign } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { getCompanies } from "@/app/actions/company";
 import { Address } from "@/lib/types";
 
@@ -85,7 +85,6 @@ export default async function HomePage() {
                       <span>{address.city}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <CircleDollarSign className="h-4 w-4" />
                       <span>Min. {formatCurrency(company.minimumOrder)}</span>
                     </div>
                   </div>

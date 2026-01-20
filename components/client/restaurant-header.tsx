@@ -1,25 +1,27 @@
-"use client"
+"use client";
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { Clock, DollarSign, ChevronRight } from 'lucide-react'
-import type { Company } from '@/lib/types'
-import { formatCurrency } from '@/lib/utils'
+import Link from "next/link";
+import Image from "next/image";
+import { Clock, ChevronRight } from "lucide-react";
+import type { Company } from "@/lib/types";
+import { formatCurrency } from "@/lib/utils";
 
 interface RestaurantHeaderProps {
-  company: Company
+  company: Company;
 }
 
 export function RestaurantHeader({ company }: RestaurantHeaderProps) {
-  const today = new Date().getDay()
-  const todayHours = company.businessHours.find(h => h.dayOfWeek === today)
-  
+  const today = new Date().getDay();
+  const todayHours = company.businessHours.find((h) => h.dayOfWeek === today);
+
   const isCurrentlyOpen = () => {
-    if (!todayHours?.isOpen) return false
-    const now = new Date()
-    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
-    return currentTime >= todayHours.openTime && currentTime <= todayHours.closeTime
-  }
+    if (!todayHours?.isOpen) return false;
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+    return (
+      currentTime >= todayHours.openTime && currentTime <= todayHours.closeTime
+    );
+  };
 
   return (
     <header className="bg-background">
@@ -52,13 +54,17 @@ export function RestaurantHeader({ company }: RestaurantHeaderProps) {
         {/* Company Name & Status */}
         <div className="pt-12">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-foreground">{company.name}</h1>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              isCurrentlyOpen() 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-red-100 text-red-700'
-            }`}>
-              {isCurrentlyOpen() ? 'Aberto' : 'Fechado'}
+            <h1 className="text-xl font-bold text-foreground">
+              {company.name}
+            </h1>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                isCurrentlyOpen()
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {isCurrentlyOpen() ? "Aberto" : "Fechado"}
             </span>
           </div>
 
@@ -67,11 +73,12 @@ export function RestaurantHeader({ company }: RestaurantHeaderProps) {
             {todayHours?.isOpen && (
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                <span>{todayHours.openTime} - {todayHours.closeTime}</span>
+                <span>
+                  {todayHours.openTime} - {todayHours.closeTime}
+                </span>
               </div>
             )}
             <div className="flex items-center gap-1">
-              <DollarSign className="h-4 w-4" />
               <span>Min. {formatCurrency(company.minimumOrder)}</span>
             </div>
           </div>
@@ -87,5 +94,5 @@ export function RestaurantHeader({ company }: RestaurantHeaderProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }

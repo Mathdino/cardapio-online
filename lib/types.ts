@@ -123,12 +123,12 @@ export interface SelectedComboItem extends ComboItem {
 }
 
 export interface CartItem {
-  cartItemId: string;
-  product: Product;
-  quantity: number;
-  selectedFlavor?: ProductFlavor;
-  selectedComboItems?: SelectedComboItem[];
-  subtotal: number;
+  cartItemId: string
+  product: Product
+  quantity: number
+  selectedFlavor?: ProductFlavor
+  selectedComboItems?: SelectedComboItem[]
+  subtotal: number
 }
 
 export interface Cart {
