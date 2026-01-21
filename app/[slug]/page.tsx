@@ -30,10 +30,14 @@ export default async function Page({ params }: PageProps) {
     notFound();
   }
 
-  const [categories, products] = await Promise.all([
+  const [allCategories, products] = await Promise.all([
     getCategories(company.id),
     getStoreProducts(company.id),
   ]);
+
+  const categories = allCategories.filter(
+    (c) => c.name.toLowerCase() !== "combos" && c.name.toLowerCase() !== "combo",
+  );
 
   return (
     <RestaurantPage
