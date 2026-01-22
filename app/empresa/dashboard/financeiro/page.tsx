@@ -8,7 +8,14 @@ import {
   orderStatusLabels,
   orderStatusColors,
 } from "@/lib/mock-data";
-import { TrendingUp, ShoppingBag, Package, Calendar } from "lucide-react";
+import {
+  TrendingUp,
+  ShoppingBag,
+  Package,
+  Calendar,
+  X,
+  List,
+} from "lucide-react";
 import {
   PieChart,
   Pie,
@@ -32,6 +39,17 @@ export default function FinanceiroPage() {
   const [customEndDate, setCustomEndDate] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLegendModalOpen, setIsLegendModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -156,10 +174,10 @@ export default function FinanceiroPage() {
 
       {/* Period Filter */}
       <div className="bg-card border rounded-xl p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <Calendar className="h-5 w-5 text-muted-foreground" />
+        <div className="flex items-center gap-3 max-w-full">
+          <Calendar className="h-5 w-5 text-muted-foreground flex-shrink-0" />
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-1 gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
             {[
               { value: "week", label: "Última Semana" },
               { value: "month", label: "Este Mês" },
@@ -169,7 +187,7 @@ export default function FinanceiroPage() {
               <button
                 key={option.value}
                 onClick={() => setPeriod(option.value as FilterPeriod)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   period === option.value
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -183,7 +201,7 @@ export default function FinanceiroPage() {
 
         {period === "custom" && (
           <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t">
-            <div>
+            <div className="w-full sm:w-auto">
               <label className="block text-sm text-muted-foreground mb-1">
                 Data Início
               </label>
@@ -191,10 +209,10 @@ export default function FinanceiroPage() {
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
-            <div>
+            <div className="w-full sm:w-auto">
               <label className="block text-sm text-muted-foreground mb-1">
                 Data Fim
               </label>
@@ -202,7 +220,7 @@ export default function FinanceiroPage() {
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-4 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
@@ -210,7 +228,7 @@ export default function FinanceiroPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-card border rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 text-green-600 rounded-lg">
@@ -285,7 +303,15 @@ export default function FinanceiroPage() {
             Nenhuma venda no período selecionado
           </p>
         ) : (
-          <div className="p-4 h-[400px] w-full">
+          <div className="p-4 h-[300px] md:h-[400px] w-full relative flex items-center justify-center">
+            {isMobile && (
+              <button
+                onClick={() => setIsLegendModalOpen(true)}
+                className="absolute top-2 right-2 z-10 p-2 bg-secondary rounded-full shadow-sm"
+              >
+                <List className="h-4 w-4 text-foreground" />
+              </button>
+            )}
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -293,13 +319,18 @@ export default function FinanceiroPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={120}
+                  label={({ name, percent }) => {
+                    // Mobile: show only percentage to avoid overlap
+                    if (isMobile) {
+                      // Only show label if slice is significant (> 5%)
+                      if (percent < 0.05) return null;
+                      return `${(percent * 100).toFixed(0)}%`;
+                    }
+                    return `${name} ${(percent * 100).toFixed(0)}%`;
+                  }}
+                  outerRadius={isMobile ? 100 : 120}
                   fill="#8884d8"
                   dataKey="quantity"
-                  nameKey="name"
                 >
                   {stats.topProducts.map((entry, index) => (
                     <Cell
@@ -308,18 +339,63 @@ export default function FinanceiroPage() {
                     />
                   ))}
                 </Pie>
+                {!isMobile && (
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{
+                      paddingTop: "20px",
+                      fontSize: "12px",
+                    }}
+                  />
+                )}
                 <RechartsTooltip
-                  formatter={(value: number, name: string, item: any) => [
-                    `${value} un. - ${formatCurrency(item.payload.revenue)}`,
-                    name,
-                  ]}
+                  formatter={(value: number) => [value, "Qtd"]}
                 />
-                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </div>
         )}
       </div>
+
+      {/* Legend Modal for Mobile */}
+      {isLegendModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+          <div className="bg-background rounded-xl w-full max-w-sm overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="font-bold text-lg">Legenda</h3>
+              <button
+                onClick={() => setIsLegendModalOpen(false)}
+                className="p-1 hover:bg-secondary rounded-full"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              {stats.topProducts.map((product, index) => (
+                <div
+                  key={product.id}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-sm font-medium">{product.name}</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {product.quantity} un. (
+                    {((product.quantity / stats.totalOrders) * 100).toFixed(0)}
+                    %)
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Orders History */}
       <div className="bg-card border rounded-xl">

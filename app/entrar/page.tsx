@@ -1,4 +1,3 @@
-
 import { AuthForm } from "@/components/client/auth-form";
 import { Metadata } from "next";
 

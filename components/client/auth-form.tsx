@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -24,7 +23,7 @@ export function AuthForm() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === "cpf") {
       // Simple mask
       const v = value.replace(/\D/g, "").slice(0, 11);
@@ -39,10 +38,10 @@ export function AuthForm() {
       } else if (v.length > 0) {
         masked = v.replace(/(\d{3})/, "$1.");
       }
-      
-      setFormData(prev => ({ ...prev, [name]: masked }));
+
+      setFormData((prev) => ({ ...prev, [name]: masked }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -76,12 +75,14 @@ export function AuthForm() {
             password: formData.password,
             redirect: false,
           });
-          
+
           if (loginRes?.error) {
-             toast.error("Erro ao fazer login automático. Tente entrar manualmente.");
+            toast.error(
+              "Erro ao fazer login automático. Tente entrar manualmente.",
+            );
           } else {
-             router.push("/");
-             router.refresh();
+            router.push("/");
+            router.refresh();
           }
         }
       }
@@ -123,7 +124,9 @@ export function AuthForm() {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-muted-foreground">ou continue com CPF</span>
+          <span className="bg-white px-2 text-muted-foreground">
+            ou continue com CPF
+          </span>
         </div>
       </div>
 
@@ -165,7 +168,7 @@ export function AuthForm() {
         </div>
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Carregando..." : (isLogin ? "Entrar" : "Criar Conta")}
+          {loading ? "Carregando..." : isLogin ? "Entrar" : "Criar Conta"}
         </Button>
       </form>
     </div>

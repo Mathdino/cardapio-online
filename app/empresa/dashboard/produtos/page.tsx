@@ -406,7 +406,10 @@ function ProdutosContent() {
             Gerencie o cardápio da sua loja
           </p>
         </div>
-        <Button onClick={() => handleOpenModal()}>
+        <Button
+          onClick={() => handleOpenModal()}
+          className="w-full md:w-auto whitespace-nowrap"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Novo Produto
         </Button>
@@ -455,69 +458,105 @@ function ProdutosContent() {
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {filteredProducts.map((product) => (
           <div
             key={product.id}
-            className="bg-card border rounded-xl overflow-hidden flex flex-col group"
+            className="bg-card border rounded-xl overflow-hidden flex flex-row md:flex-col group min-h-[8rem] md:h-auto"
           >
-            <div className="relative h-48 bg-secondary">
+            {/* Image Section */}
+            <div className="relative w-32 md:w-full h-full md:h-48 bg-secondary flex-shrink-0">
               <Image
                 src={product.image}
                 alt={product.name}
                 fill
                 className="object-cover transition-transform group-hover:scale-105"
               />
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* Desktop Actions */}
+              <div className="hidden md:flex absolute top-2 right-2 gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleOpenModal(product)}
-                  className="p-2 bg-background/80 backdrop-blur-sm rounded-lg hover:bg-background transition-colors"
+                  className="p-2 bg-background/80 backdrop-blur-sm rounded-lg hover:bg-background transition-colors shadow-sm"
                 >
                   <Pencil className="h-4 w-4 text-foreground" />
                 </button>
                 <button
                   onClick={() => handleDelete(product.id)}
-                  className="p-2 bg-destructive/80 backdrop-blur-sm rounded-lg hover:bg-destructive text-white transition-colors"
+                  className="p-2 bg-destructive/80 backdrop-blur-sm rounded-lg hover:bg-destructive text-white transition-colors shadow-sm"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-              <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded text-xs text-white">
+              <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded text-xs text-white hidden md:block">
                 {getCategoryName(product.categoryId)}
               </div>
             </div>
 
-            <div className="p-4 flex-1 flex flex-col">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-bold text-foreground line-clamp-1">
-                  {product.name}
-                </h3>
-                <div className="flex flex-col items-end">
-                  {product.productType === "combo" ? (
-                    <span className="font-bold text-primary whitespace-nowrap">
-                      Variável
-                    </span>
-                  ) : product.promotionalPrice ? (
-                    <>
-                      <span className="text-xs text-muted-foreground line-through">
+            {/* Content Section */}
+            <div className="p-3 md:p-4 flex-1 flex flex-col justify-between min-w-0">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="font-bold text-foreground line-clamp-1 text-sm md:text-base">
+                    {product.name}
+                  </h3>
+                  <div className="flex flex-col items-end flex-shrink-0">
+                    {product.productType === "combo" ? (
+                      <span className="font-bold text-primary whitespace-nowrap text-sm">
+                        Variável
+                      </span>
+                    ) : product.promotionalPrice ? (
+                      <>
+                        <span className="text-[10px] text-muted-foreground line-through">
+                          {formatCurrency(product.price)}
+                        </span>
+                        <span className="font-bold text-red-600 whitespace-nowrap text-sm">
+                          {formatCurrency(product.promotionalPrice)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="font-bold text-primary whitespace-nowrap text-sm">
                         {formatCurrency(product.price)}
                       </span>
-                      <span className="font-bold text-red-600 whitespace-nowrap">
-                        {formatCurrency(product.promotionalPrice)}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="font-bold text-primary whitespace-nowrap">
-                      {formatCurrency(product.price)}
-                    </span>
-                  )}
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2 hidden md:block">
+                  {product.description}
+                </p>
+                <div className="md:hidden text-xs text-muted-foreground line-clamp-1">
+                  {getCategoryName(product.categoryId)}
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
-                {product.description}
-              </p>
 
-              <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-3">
+              {/* Mobile Actions */}
+              <div className="flex items-center justify-between mt-2 md:hidden">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleOpenModal(product)}
+                    className="p-1.5 bg-secondary rounded-md text-foreground hover:bg-secondary/80"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="p-1.5 bg-destructive/10 text-destructive rounded-md hover:bg-destructive/20"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <span
+                  className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                    product.isAvailable
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {product.isAvailable ? "Ativo" : "Inativo"}
+                </span>
+              </div>
+
+              {/* Desktop Footer */}
+              <div className="hidden md:flex items-center justify-between text-xs text-muted-foreground border-t pt-3 mt-auto">
                 <span className="capitalize">
                   {product.productType === "simple"
                     ? "Simples"
