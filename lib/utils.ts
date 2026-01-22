@@ -58,6 +58,24 @@ export function formatPhone(value: string) {
   return value;
 }
 
+export function formatCPF(value: string) {
+  if (!value) return "";
+  value = value.replace(/\D/g, "");
+  if (value.length > 11) value = value.slice(0, 11);
+  value = value.replace(/(\d{3})(\d)/, "$1.$2");
+  value = value.replace(/(\d{3})(\d)/, "$1.$2");
+  value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  return value;
+}
+
+export function formatCEP(value: string) {
+  if (!value) return "";
+  value = value.replace(/\D/g, "");
+  if (value.length > 8) value = value.slice(0, 8);
+  value = value.replace(/(\d{5})(\d)/, "$1-$2");
+  return value;
+}
+
 export const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image();

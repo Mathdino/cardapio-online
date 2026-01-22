@@ -32,15 +32,65 @@ model Company {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      String   // 'admin' | 'company_owner'
-  companyId String?
-  company   Company? @relation(fields: [companyId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(uuid())
+  email         String?   @unique
+  password      String?
+  name          String?
+  role          String    @default("customer") // 'admin' | 'company_owner' | 'customer'
+  companyId     String?
+  company       Company?  @relation(fields: [companyId], references: [id])
+  
+  // Customer specific fields
+  phone         String?
+  cpf           String?   @unique
+  address       Json?     // { zipCode, street, number, neighborhood, city, state }
+  
+  // NextAuth fields
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  orders        Order[]
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Category {
@@ -92,11 +142,16 @@ model Order {
   companyId     String
   customerName  String
   customerPhone String
+  customerCpf   String?
+  deliveryAddress Json?
   items         Json
   total         Float
   status        String
   paymentMethod String
   notes         String?
   createdAt     DateTime @default(now())
+  
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
   company       Company  @relation(fields: [companyId], references: [id])
 }

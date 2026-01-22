@@ -9,10 +9,13 @@ interface CreateOrderData {
   companyId: string;
   customerName: string;
   customerPhone: string;
+  customerCpf?: string;
+  deliveryAddress?: any;
   items: OrderItem[];
   total: number;
   paymentMethod: PaymentMethod;
   notes?: string;
+  userId?: string;
 }
 
 function generateOrderId(): string {
@@ -34,10 +37,13 @@ export async function createOrder(data: CreateOrderData) {
       companyId,
       customerName,
       customerPhone,
+      customerCpf,
+      deliveryAddress,
       items,
       total,
       paymentMethod,
       notes,
+      userId,
     } = data;
 
     // Validate company exists
@@ -69,11 +75,14 @@ export async function createOrder(data: CreateOrderData) {
             companyId,
             customerName,
             customerPhone,
+            customerCpf: customerCpf || null,
+            deliveryAddress: deliveryAddress || null,
             items: items as any, // Prisma handles JSON
             total,
             status: "pending",
             paymentMethod,
             notes: notes || "",
+            userId: userId || null,
           },
         });
         break;
@@ -112,6 +121,20 @@ export async function getOrders(companyId: string) {
     return orders;
   } catch (error) {
     console.error("Error fetching orders:", error);
+    return [];
+  }
+}
+
+export async function getCustomerOrders(userId: string) {
+  try {
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: { company: true },
+    });
+    return orders;
+  } catch (error) {
+    console.error("Error fetching customer orders:", error);
     return [];
   }
 }

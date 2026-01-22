@@ -31,7 +31,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   return (
     <button
       onClick={onClick}
-      className="flex gap-3 p-3 border-b last:border-b-0 w-full text-left hover:bg-secondary/50 transition-colors"
+      className="flex gap-3 p-4 border-b last:border-b-0 w-full text-left hover:bg-secondary/50 transition-colors"
     >
       {/* Product Image */}
       <div className="relative h-24 w-24 flex-shrink-0 rounded-lg overflow-hidden bg-secondary">

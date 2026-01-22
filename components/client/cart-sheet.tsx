@@ -9,14 +9,21 @@ import {
   MessageCircle,
   Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useCart } from "@/lib/cart-context";
-import { formatCurrency, paymentMethodLabels, formatPhone } from "@/lib/utils";
+import {
+  formatCurrency,
+  paymentMethodLabels,
+  formatPhone,
+  formatCPF,
+  formatCEP,
+} from "@/lib/utils";
 import type { Company, PaymentMethod } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { createOrder } from "@/app/actions/order";
 import { OrderItem } from "@/lib/types";
+import { useSession } from "next-auth/react";
 
 interface CartSheetProps {
   company: Company;
@@ -26,10 +33,22 @@ export function CartSheet({ company }: CartSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerCpf, setCustomerCpf] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState({
+    street: "",
+    number: "",
+    neighborhood: "",
+    city: "",
+    state: "",
+    cep: "",
+  });
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [showCheckout, setShowCheckout] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasPrefilled, setHasPrefilled] = useState(false);
+  const { data: session } = useSession();
+
   const {
     items,
     total,
@@ -39,6 +58,29 @@ export function CartSheet({ company }: CartSheetProps) {
     clearCart,
     getWhatsAppMessage,
   } = useCart();
+
+  useEffect(() => {
+    if (session?.user && !hasPrefilled) {
+      setCustomerName(session.user.name || "");
+      if (session.user.phone) {
+        setCustomerPhone(session.user.phone);
+      }
+      if (session.user.cpf) {
+        setCustomerCpf(session.user.cpf);
+      }
+      if (session.user.address) {
+        setDeliveryAddress({
+          street: session.user.address.street || "",
+          number: session.user.address.number || "",
+          neighborhood: session.user.address.neighborhood || "",
+          city: session.user.address.city || "",
+          state: session.user.address.state || "",
+          cep: session.user.address.cep || "",
+        });
+      }
+      setHasPrefilled(true);
+    }
+  }, [session, hasPrefilled]);
 
   const handleCheckout = async () => {
     if (!company.isOpen) {
@@ -53,6 +95,11 @@ export function CartSheet({ company }: CartSheetProps) {
 
     if (!customerPhone.trim()) {
       alert("Por favor, informe seu telefone");
+      return;
+    }
+
+    if (!deliveryAddress.street || !deliveryAddress.number) {
+      alert("Por favor, informe o endereço de entrega (Rua e Número).");
       return;
     }
 
@@ -84,10 +131,13 @@ export function CartSheet({ company }: CartSheetProps) {
         companyId: company.id,
         customerName,
         customerPhone,
+        customerCpf,
+        deliveryAddress,
         items: orderItems,
         total,
         paymentMethod,
         notes,
+        userId: session?.user?.id,
       });
 
       if (!result.success) {
@@ -95,12 +145,32 @@ export function CartSheet({ company }: CartSheetProps) {
       }
 
       // Open WhatsApp
-      const whatsappUrl = getWhatsAppMessage(
-        company.whatsapp,
-        customerName,
-        paymentMethodLabels[paymentMethod],
-        notes,
-      );
+      let message = `*Novo Pedido* - ${company.name}\n\n`;
+      message += `*Cliente:* ${customerName}\n`;
+      message += `*Telefone:* ${customerPhone}\n`;
+      if (customerCpf) message += `*CPF:* ${customerCpf}\n`;
+      message += `*Endereço:* ${deliveryAddress.street}, ${deliveryAddress.number} - ${deliveryAddress.neighborhood}\n\n`;
+
+      message += `*Itens:*\n`;
+      orderItems.forEach((item) => {
+        message += `${item.quantity}x ${item.productName}`;
+        if (item.selectedFlavor) message += ` (${item.selectedFlavor})`;
+        if (item.selectedFlavors)
+          message += ` (${item.selectedFlavors.join(", ")})`;
+        message += ` - ${formatCurrency(item.subtotal)}\n`;
+        if (item.comboItems && item.comboItems.length > 0) {
+          item.comboItems.forEach((ci) => (message += `  - ${ci}\n`));
+        }
+        if (item.removedIngredients && item.removedIngredients.length > 0) {
+          message += `  - Sem: ${item.removedIngredients.join(", ")}\n`;
+        }
+      });
+
+      message += `\n*Total:* ${formatCurrency(total)}\n`;
+      message += `*Pagamento:* ${paymentMethodLabels[paymentMethod]}\n`;
+      if (notes) message += `*Obs:* ${notes}\n`;
+
+      const whatsappUrl = `https://wa.me/${company.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 
       window.open(whatsappUrl, "_blank");
       clearCart();
@@ -108,6 +178,15 @@ export function CartSheet({ company }: CartSheetProps) {
       setShowCheckout(false);
       setCustomerName("");
       setCustomerPhone("");
+      setCustomerCpf("");
+      setDeliveryAddress({
+        street: "",
+        number: "",
+        neighborhood: "",
+        city: "",
+        state: "",
+        cep: "",
+      });
       setNotes("");
     } catch (error) {
       console.error("Error processing order:", error);
@@ -336,6 +415,163 @@ export function CartSheet({ company }: CartSheetProps) {
                       maxLength={15}
                       className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
+                  </div>
+
+                  {/* Customer CPF */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      CPF
+                    </label>
+                    <input
+                      type="text"
+                      value={customerCpf}
+                      onChange={(e) =>
+                        setCustomerCpf(formatCPF(e.target.value))
+                      }
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                      className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+
+                  {/* Delivery Address */}
+                  <div className="space-y-4 pt-2">
+                    <h3 className="font-semibold text-foreground">
+                      Endereço de Entrega
+                    </h3>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          CEP
+                        </label>
+                        <input
+                          type="text"
+                          value={deliveryAddress.cep}
+                          onChange={(e) => {
+                            const newCep = formatCEP(e.target.value);
+                            setDeliveryAddress({
+                              ...deliveryAddress,
+                              cep: newCep,
+                            });
+                            if (newCep.length === 9) {
+                              fetch(
+                                `https://viacep.com.br/ws/${newCep.replace(/\D/g, "")}/json/`,
+                              )
+                                .then((res) => res.json())
+                                .then((data) => {
+                                  if (!data.erro) {
+                                    setDeliveryAddress((prev) => ({
+                                      ...prev,
+                                      street: data.logradouro,
+                                      neighborhood: data.bairro,
+                                      city: data.localidade,
+                                      state: data.uf,
+                                      cep: newCep,
+                                    }));
+                                  }
+                                })
+                                .catch(() => {});
+                            }
+                          }}
+                          placeholder="00000-000"
+                          maxLength={9}
+                          className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Rua
+                      </label>
+                      <input
+                        type="text"
+                        value={deliveryAddress.street}
+                        onChange={(e) =>
+                          setDeliveryAddress({
+                            ...deliveryAddress,
+                            street: e.target.value,
+                          })
+                        }
+                        placeholder="Nome da rua"
+                        className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Bairro
+                        </label>
+                        <input
+                          type="text"
+                          value={deliveryAddress.neighborhood}
+                          onChange={(e) =>
+                            setDeliveryAddress({
+                              ...deliveryAddress,
+                              neighborhood: e.target.value,
+                            })
+                          }
+                          placeholder="Bairro"
+                          className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Nº
+                        </label>
+                        <input
+                          type="text"
+                          value={deliveryAddress.number}
+                          onChange={(e) =>
+                            setDeliveryAddress({
+                              ...deliveryAddress,
+                              number: e.target.value,
+                            })
+                          }
+                          placeholder="123"
+                          className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Cidade
+                        </label>
+                        <input
+                          type="text"
+                          value={deliveryAddress.city}
+                          onChange={(e) =>
+                            setDeliveryAddress({
+                              ...deliveryAddress,
+                              city: e.target.value,
+                            })
+                          }
+                          placeholder="Cidade"
+                          className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          UF
+                        </label>
+                        <input
+                          type="text"
+                          value={deliveryAddress.state}
+                          onChange={(e) =>
+                            setDeliveryAddress({
+                              ...deliveryAddress,
+                              state: e.target.value,
+                            })
+                          }
+                          placeholder="UF"
+                          className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Notes */}

@@ -311,6 +311,27 @@ export default function PedidosPage() {
                     <Phone className="h-4 w-4" />
                     {selectedOrder.customerPhone}
                   </div>
+                  {selectedOrder.customerCpf && (
+                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                      <span className="font-semibold">CPF:</span>
+                      {selectedOrder.customerCpf}
+                    </div>
+                  )}
+                  {selectedOrder.deliveryAddress && (
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      <p className="font-semibold">Endereço de Entrega:</p>
+                      <p>
+                        {selectedOrder.deliveryAddress.street},{" "}
+                        {selectedOrder.deliveryAddress.number}
+                      </p>
+                      <p>
+                        {selectedOrder.deliveryAddress.neighborhood} -{" "}
+                        {selectedOrder.deliveryAddress.city}/
+                        {selectedOrder.deliveryAddress.state}
+                      </p>
+                      <p>{selectedOrder.deliveryAddress.cep}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Items */}

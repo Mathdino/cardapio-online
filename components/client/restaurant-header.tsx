@@ -59,6 +59,7 @@ export function RestaurantHeader({ company }: RestaurantHeaderProps) {
               {company.name}
             </h1>
             <span
+              suppressHydrationWarning
               className={`px-3 py-1 rounded-full text-xs font-medium ${
                 isCurrentlyOpen()
                   ? "bg-green-100 text-green-700"
@@ -74,7 +75,7 @@ export function RestaurantHeader({ company }: RestaurantHeaderProps) {
             {todayHours?.isOpen && (
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                <span>
+                <span suppressHydrationWarning>
                   {todayHours.openTime} - {todayHours.closeTime}
                 </span>
               </div>

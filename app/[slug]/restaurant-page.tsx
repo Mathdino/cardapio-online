@@ -8,6 +8,7 @@ import { ScrollHeader } from "@/components/client/scroll-header";
 import { CategoryTabs } from "@/components/client/category-tabs";
 import { ProductList } from "@/components/client/product-list";
 import { CartSheet } from "@/components/client/cart-sheet";
+import { ReorderHandler } from "@/components/client/reorder-handler";
 
 interface RestaurantPageProps {
   company: Company;
@@ -44,6 +45,7 @@ const RestaurantPage = ({
 
   return (
     <CartProvider>
+      <ReorderHandler products={products} companyId={company.id} />
       <div className="min-h-screen bg-background max-w-lg mx-auto relative">
         <ScrollHeader company={company} onSearch={setSearchQuery} />
         <RestaurantHeader company={company} />

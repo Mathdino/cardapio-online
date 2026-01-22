@@ -116,6 +116,7 @@ export interface Order {
 export interface OrderItem {
   productId: string;
   productName: string;
+  productImage?: string;
   quantity: number;
   unitPrice: number;
   selectedFlavor?: string; // Kept for backward compatibility
@@ -152,9 +153,14 @@ export interface Cart {
 // User Types
 export interface User {
   id: string;
-  email: string;
-  role: "admin" | "company";
-  companyId?: string;
+  email: string | null;
+  name?: string | null;
+  role: "admin" | "company" | "customer";
+  companyId?: string | null;
+  phone?: string | null;
+  cpf?: string | null;
+  address?: Address | null;
+  image?: string | null;
   createdAt: Date;
 }
 
