@@ -520,14 +520,14 @@ export default function PedidosPage() {
                       {paymentMethodLabels[selectedOrder.paymentMethod]}
                     </span>
                   </div>
-                  {selectedOrder.discount && selectedOrder.discount > 0 && (
+                  {(selectedOrder.discount || 0) > 0 ? (
                     <div className="flex justify-between text-sm mb-2 text-green-600">
                       <span>
                         Desconto {selectedOrder.couponId ? "(Cupom)" : ""}
                       </span>
-                      <span>- {formatCurrency(selectedOrder.discount)}</span>
+                      <span>- {formatCurrency(selectedOrder.discount!)}</span>
                     </div>
-                  )}
+                  ) : null}
                   <div className="flex justify-between">
                     <span className="font-bold text-foreground">Total</span>
                     <span className="font-bold text-foreground text-lg">
