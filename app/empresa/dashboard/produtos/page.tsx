@@ -432,7 +432,7 @@ function ProdutosContent() {
         </div>
         <Button
           onClick={() => handleOpenModal()}
-          className="w-full md:w-auto whitespace-nowrap"
+          className="w-[250px] md:w-auto whitespace-nowrap"
         >
           <Plus className="h-4 w-4 mr-2" />
           Novo Produto
@@ -441,7 +441,7 @@ function ProdutosContent() {
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 bg-card border rounded-xl p-4">
-        <div className="relative flex-1">
+        <div className="relative w-full md:flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
@@ -451,7 +451,7 @@ function ProdutosContent() {
             className="w-full pl-9 pr-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+        <div className="w-full md:w-auto flex items-center gap-2 overflow-x-auto no-scrollbar">
           <Filter className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <div className="flex gap-2">
             <button
@@ -486,10 +486,10 @@ function ProdutosContent() {
         {filteredProducts.map((product) => (
           <div
             key={product.id}
-            className="bg-card border rounded-xl overflow-hidden flex flex-row md:flex-col group min-h-[8rem] md:h-auto"
+            className="bg-card border rounded-xl overflow-hidden flex flex-row md:flex-col group min-h-[7rem] md:h-auto"
           >
             {/* Image Section */}
-            <div className="relative w-32 md:w-full h-full md:h-48 bg-secondary flex-shrink-0">
+            <div className="relative w-28 md:w-full h-auto md:h-48 bg-secondary flex-shrink-0">
               <Image
                 src={product.image}
                 alt={product.name}
@@ -816,7 +816,7 @@ function ProdutosContent() {
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Tipo de Produto
                   </label>
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
@@ -1006,7 +1006,7 @@ function ProdutosContent() {
                     )}
 
                     {/* Adicionar Novo Sabor */}
-                    <div className="flex gap-2 items-end">
+                    <div className="flex flex-col md:flex-row gap-2 md:items-end">
                       <div className="flex-1">
                         <label className="text-xs text-muted-foreground mb-1 block">
                           Nome do Sabor
@@ -1024,33 +1024,36 @@ function ProdutosContent() {
                           placeholder="Ex: Bacon"
                         />
                       </div>
-                      <div className="w-24">
-                        <label className="text-xs text-muted-foreground mb-1 block">
-                          Valor (+)
-                        </label>
-                        <input
-                          type="number"
-                          value={newFlavor.price}
-                          onChange={(e) =>
-                            setNewFlavor((prev) => ({
-                              ...prev,
-                              price: e.target.value,
-                            }))
-                          }
-                          className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
-                          placeholder="0.00"
-                          min="0"
-                          step="0.01"
-                        />
+                      <div className="flex gap-2 items-end">
+                        <div className="w-full md:w-24 flex-1 md:flex-none">
+                          <label className="text-xs text-muted-foreground mb-1 block">
+                            Valor (+)
+                          </label>
+                          <input
+                            type="number"
+                            value={newFlavor.price}
+                            onChange={(e) =>
+                              setNewFlavor((prev) => ({
+                                ...prev,
+                                price: e.target.value,
+                              }))
+                            }
+                            className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={handleAddFlavor}
+                          size="sm"
+                          variant="secondary"
+                          className="mb-[1px]"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        onClick={handleAddFlavor}
-                        size="sm"
-                        variant="secondary"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                 )}
@@ -1061,8 +1064,8 @@ function ProdutosContent() {
                     <h4 className="font-medium text-sm mb-3">
                       Configuração do Combo
                     </h4>
-                    <div className="flex align-center justify-between">
-                      <p className="text-sm text-muted-foreground mb-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <p className="text-sm text-muted-foreground mb-4 md:mb-0">
                         Adicione grupos de escolha para o combo (ex: "Escolha 2
                         Lanches", "Adicionais Obrigatórios").
                       </p>
