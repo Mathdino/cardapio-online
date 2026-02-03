@@ -49,6 +49,7 @@ export default function PromocoesPage() {
         min: string;
         max: string;
         productIds: string[];
+        productPrices: Record<string, string>;
         options: { id: string; name: string; price: string }[];
       }[],
     },
@@ -82,7 +83,7 @@ export default function PromocoesPage() {
               getPromotions(company.id),
               getCategories(company.id),
             ]);
-          setProducts(productsData as Product[]);
+          setProducts(productsData as unknown as Product[]);
           setPromotions(promotionsData as unknown as Promotion[]);
           setCategories(categoriesData);
         } catch (error) {
@@ -191,6 +192,7 @@ export default function PromocoesPage() {
             min: "0",
             max: "1",
             productIds: [],
+            productPrices: {},
             options: [],
           },
           ...prev.comboConfig.groups,
@@ -220,6 +222,12 @@ export default function PromocoesPage() {
             ...group,
             min: parseInt(group.min),
             max: parseInt(group.max),
+            productPrices: Object.fromEntries(
+              Object.entries(group.productPrices || {}).map(([k, v]) => [
+                k,
+                parseFloat(v),
+              ]),
+            ),
             options: group.options.map((opt) => ({
               id: opt.id,
               name: opt.name,
@@ -242,7 +250,7 @@ export default function PromocoesPage() {
           getProducts(company.id),
           getPromotions(company.id),
         ]);
-        setProducts(productsData as Product[]);
+        setProducts(productsData as unknown as Product[]);
         setPromotions(promotionsData as unknown as Promotion[]);
 
         setIsComboModalOpen(false);
@@ -263,6 +271,7 @@ export default function PromocoesPage() {
               min: string;
               max: string;
               productIds: string[];
+              productPrices: Record<string, string>;
               options: { id: string; name: string; price: string }[];
             }[],
           },
@@ -294,6 +303,12 @@ export default function PromocoesPage() {
           ...g,
           min: g.min.toString(),
           max: g.max.toString(),
+          productPrices: Object.fromEntries(
+            Object.entries(g.productPrices || {}).map(([k, v]) => [
+              k,
+              String(v),
+            ]),
+          ),
           options: (g.options || []).map((o: any) => ({
             ...o,
             price: (o.priceModifier ?? 0).toString(),
@@ -310,7 +325,7 @@ export default function PromocoesPage() {
       const result = await deleteProduct(productId, company.id);
       if (result.success) {
         const productsData = await getProducts(company.id);
-        setProducts(productsData as Product[]);
+        setProducts(productsData as unknown as Product[]);
       } else {
         alert("Erro ao excluir combo");
       }
@@ -711,7 +726,9 @@ export default function PromocoesPage() {
                       className="border p-4 rounded-lg bg-secondary/10"
                     >
                       <div className="flex justify-between mb-3">
-                        <h4 className="font-semibold">Grupo {idx + 1}</h4>
+                        <h4 className="font-semibold">
+                          Grupo {comboFormData.comboConfig.groups.length - idx}
+                        </h4>
                         <Button
                           type="button"
                           variant="ghost"
@@ -822,38 +839,134 @@ export default function PromocoesPage() {
 
                       {/* Group Content */}
                       {group.type === "products" ? (
-                        <div className="max-h-40 overflow-y-auto border p-2 rounded bg-background">
-                          {products.map((prod) => (
-                            <label
-                              key={prod.id}
-                              className="flex items-center gap-2 p-1 hover:bg-secondary cursor-pointer"
+                        <div className="space-y-2">
+                          <div className="flex gap-2 items-center">
+                            <select
+                              className="flex-1 p-2 border rounded text-sm bg-background"
+                              onChange={(e) => {
+                                const catId = e.target.value;
+                                if (!catId) return;
+
+                                const productsInCat = products.filter(
+                                  (p) => p.categoryId === catId,
+                                );
+
+                                if (productsInCat.length === 0) {
+                                  alert("Esta categoria não possui produtos.");
+                                  e.target.value = "";
+                                  return;
+                                }
+
+                                const newGroups = [
+                                  ...comboFormData.comboConfig.groups,
+                                ];
+                                const currentIds = new Set(
+                                  newGroups[idx].productIds,
+                                );
+
+                                productsInCat.forEach((p) =>
+                                  currentIds.add(p.id),
+                                );
+
+                                newGroups[idx].productIds =
+                                  Array.from(currentIds);
+
+                                setComboFormData({
+                                  ...comboFormData,
+                                  comboConfig: {
+                                    ...comboFormData.comboConfig,
+                                    groups: newGroups,
+                                  },
+                                });
+                                e.target.value = "";
+                              }}
                             >
-                              <input
-                                type="checkbox"
-                                checked={group.productIds.includes(prod.id)}
-                                onChange={(e) => {
-                                  const newGroups = [
-                                    ...comboFormData.comboConfig.groups,
-                                  ];
-                                  if (e.target.checked) {
-                                    newGroups[idx].productIds.push(prod.id);
-                                  } else {
-                                    newGroups[idx].productIds = newGroups[
-                                      idx
-                                    ].productIds.filter((id) => id !== prod.id);
-                                  }
-                                  setComboFormData({
-                                    ...comboFormData,
-                                    comboConfig: {
-                                      ...comboFormData.comboConfig,
-                                      groups: newGroups,
-                                    },
-                                  });
-                                }}
-                              />
-                              <span className="text-sm">{prod.name}</span>
-                            </label>
-                          ))}
+                              <option value="">
+                                Adicionar produtos da categoria...
+                              </option>
+                              {categories.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="max-h-40 overflow-y-auto border p-2 rounded bg-background">
+                            {products.map((prod) => (
+                              <div
+                                key={prod.id}
+                                className="flex items-center justify-between gap-2 p-1 hover:bg-secondary"
+                              >
+                                <label className="flex items-center gap-2 cursor-pointer flex-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={group.productIds.includes(prod.id)}
+                                    onChange={(e) => {
+                                      const newGroups = [
+                                        ...comboFormData.comboConfig.groups,
+                                      ];
+                                      if (e.target.checked) {
+                                        newGroups[idx].productIds.push(prod.id);
+                                      } else {
+                                        newGroups[idx].productIds = newGroups[
+                                          idx
+                                        ].productIds.filter(
+                                          (id) => id !== prod.id,
+                                        );
+                                        // Optional: remove price override if unchecked
+                                        if (newGroups[idx].productPrices) {
+                                          delete newGroups[idx].productPrices[
+                                            prod.id
+                                          ];
+                                        }
+                                      }
+                                      setComboFormData({
+                                        ...comboFormData,
+                                        comboConfig: {
+                                          ...comboFormData.comboConfig,
+                                          groups: newGroups,
+                                        },
+                                      });
+                                    }}
+                                  />
+                                  <span className="text-sm">{prod.name}</span>
+                                </label>
+                                {group.productIds.includes(prod.id) && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-muted-foreground">
+                                      R$
+                                    </span>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      placeholder={prod.price.toString()}
+                                      className="w-20 p-1 border rounded text-sm bg-background"
+                                      value={
+                                        group.productPrices?.[prod.id] ?? ""
+                                      }
+                                      onChange={(e) => {
+                                        const newGroups = [
+                                          ...comboFormData.comboConfig.groups,
+                                        ];
+                                        if (!newGroups[idx].productPrices) {
+                                          newGroups[idx].productPrices = {};
+                                        }
+                                        newGroups[idx].productPrices[prod.id] =
+                                          e.target.value;
+                                        setComboFormData({
+                                          ...comboFormData,
+                                          comboConfig: {
+                                            ...comboFormData.comboConfig,
+                                            groups: newGroups,
+                                          },
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ) : (
                         <div className="space-y-2">

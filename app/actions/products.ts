@@ -73,8 +73,20 @@ export async function createProduct(companyId: string, data: any) {
         ...processedData,
       },
     });
+
+    // Revalidate dashboard paths
     revalidatePath("/empresa/dashboard/produtos");
     revalidatePath("/empresa/dashboard/promocoes");
+
+    // Revalidate store page
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { slug: true },
+    });
+    if (company) {
+      revalidatePath(`/${company.slug}`);
+    }
+
     return { success: true, product };
   } catch (error) {
     console.error("Error creating product:", error);
@@ -116,8 +128,19 @@ export async function updateProduct(id: string, companyId: string, data: any) {
       data: cleanData,
     });
 
+    // Revalidate dashboard paths
     revalidatePath("/empresa/dashboard/produtos");
     revalidatePath("/empresa/dashboard/promocoes");
+
+    // Revalidate store page
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { slug: true },
+    });
+    if (company) {
+      revalidatePath(`/${company.slug}`);
+    }
+
     return { success: true, product };
   } catch (error) {
     console.error("Error updating product:", error);
@@ -144,8 +167,19 @@ export async function deleteProduct(id: string, companyId: string) {
       where: { id },
     });
 
+    // Revalidate dashboard paths
     revalidatePath("/empresa/dashboard/produtos");
     revalidatePath("/empresa/dashboard/promocoes");
+
+    // Revalidate store page
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { slug: true },
+    });
+    if (company) {
+      revalidatePath(`/${company.slug}`);
+    }
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting product:", error);

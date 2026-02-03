@@ -98,12 +98,21 @@ export function ProductModal({
             if (group.type === "products") {
               const selectedProduct = products.find((p) => p.id === itemId);
               if (selectedProduct) {
-                // Use promotional price if available for the component product
-                const itemPrice =
-                  selectedProduct.isPromotion &&
-                  selectedProduct.promotionalPrice
-                    ? selectedProduct.promotionalPrice
-                    : selectedProduct.price;
+                // Check for price override in combo group
+                let itemPrice;
+                if (
+                  group.productPrices &&
+                  group.productPrices[itemId] !== undefined
+                ) {
+                  itemPrice = group.productPrices[itemId];
+                } else {
+                  // Use promotional price if available for the component product
+                  itemPrice =
+                    selectedProduct.isPromotion &&
+                    selectedProduct.promotionalPrice
+                      ? selectedProduct.promotionalPrice
+                      : selectedProduct.price;
+                }
                 price += itemPrice * qty;
               }
             } else if (group.type === "custom" && group.options) {
@@ -169,10 +178,19 @@ export function ProductModal({
           if (group.type === "products") {
             const selectedProduct = products.find((p) => p.id === itemId);
             if (selectedProduct) {
-              const itemPrice =
-                selectedProduct.isPromotion && selectedProduct.promotionalPrice
-                  ? selectedProduct.promotionalPrice
-                  : selectedProduct.price;
+              let itemPrice;
+              if (
+                group.productPrices &&
+                group.productPrices[itemId] !== undefined
+              ) {
+                itemPrice = group.productPrices[itemId];
+              } else {
+                itemPrice =
+                  selectedProduct.isPromotion &&
+                  selectedProduct.promotionalPrice
+                    ? selectedProduct.promotionalPrice
+                    : selectedProduct.price;
+              }
 
               selectedComboItems.push({
                 id: selectedProduct.id,
@@ -523,11 +541,19 @@ export function ProductModal({
                             );
                             if (!productItem) return null;
 
-                            const itemPrice =
-                              productItem.isPromotion &&
-                              productItem.promotionalPrice
-                                ? productItem.promotionalPrice
-                                : productItem.price;
+                            let itemPrice;
+                            if (
+                              group.productPrices &&
+                              group.productPrices[productId] !== undefined
+                            ) {
+                              itemPrice = group.productPrices[productId];
+                            } else {
+                              itemPrice =
+                                productItem.isPromotion &&
+                                productItem.promotionalPrice
+                                  ? productItem.promotionalPrice
+                                  : productItem.price;
+                            }
 
                             const qty =
                               comboSelections[group.id]?.[productId] || 0;

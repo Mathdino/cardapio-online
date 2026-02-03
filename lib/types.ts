@@ -92,6 +92,7 @@ export interface ComboGroup {
   min: number;
   max: number;
   productIds?: string[];
+  productPrices?: Record<string, number>;
   options?: ComboItem[];
 }
 

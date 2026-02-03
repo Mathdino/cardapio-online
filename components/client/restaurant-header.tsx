@@ -12,16 +12,30 @@ interface RestaurantHeaderProps {
 
 export function RestaurantHeader({ company }: RestaurantHeaderProps) {
   const today = new Date().getDay();
-  const todayHours = company.businessHours.find((h) => h.dayOfWeek === today);
+  const todayHours = Array.isArray(company.businessHours)
+    ? company.businessHours.find((h) => h.dayOfWeek === today)
+    : undefined;
 
   const isCurrentlyOpen = () => {
     if (!company.isOpen) return false;
     if (!todayHours?.isOpen) return false;
+
     const now = new Date();
     const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
-    return (
-      currentTime >= todayHours.openTime && currentTime <= todayHours.closeTime
-    );
+
+    // Handle cases where closing time is on the next day (e.g. 18:00 - 02:00)
+    if (todayHours.openTime <= todayHours.closeTime) {
+      return (
+        currentTime >= todayHours.openTime &&
+        currentTime <= todayHours.closeTime
+      );
+    } else {
+      // Crosses midnight
+      return (
+        currentTime >= todayHours.openTime ||
+        currentTime <= todayHours.closeTime
+      );
+    }
   };
 
   return (

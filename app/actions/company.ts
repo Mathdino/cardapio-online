@@ -56,6 +56,7 @@ export async function updateCompany(companyId: string, data: Partial<Company>) {
     });
 
     revalidatePath("/empresa/dashboard/informacoes");
+    revalidatePath(`/${updatedCompany.slug}`); // Also revalidate the public page
     return { success: true, company: updatedCompany };
   } catch (error) {
     console.error("Error updating company:", error);

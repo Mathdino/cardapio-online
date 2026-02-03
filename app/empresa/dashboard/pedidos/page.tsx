@@ -257,9 +257,10 @@ export default function PedidosPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="border"
                               onClick={() => setSelectedOrder(order)}
                             >
-                              Ver detalhes
+                              Detalhes do Pedido
                             </Button>
                             <Button
                               variant="outline"

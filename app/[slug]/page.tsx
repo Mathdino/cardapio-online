@@ -35,10 +35,7 @@ export default async function Page({ params }: PageProps) {
     getStoreProducts(company.id),
   ]);
 
-  const categories = allCategories.filter(
-    (c) =>
-      c.name.toLowerCase() !== "combos" && c.name.toLowerCase() !== "combo",
-  );
+  const categories = allCategories;
 
   return (
     <RestaurantPage
