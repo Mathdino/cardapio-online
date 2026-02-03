@@ -30,20 +30,29 @@ export async function getCompanyBySlug(slug: string) {
 
 export async function updateCompany(companyId: string, data: Partial<Company>) {
   try {
+    // Filter out undefined values to ensure Prisma only updates fields that are actually present
+    const cleanData: any = {};
+
+    if (data.name !== undefined) cleanData.name = data.name;
+    if (data.description !== undefined)
+      cleanData.description = data.description;
+    if (data.whatsapp !== undefined) cleanData.whatsapp = data.whatsapp;
+    if (data.minimumOrder !== undefined)
+      cleanData.minimumOrder = data.minimumOrder;
+    if (data.profileImage !== undefined)
+      cleanData.profileImage = data.profileImage;
+    if (data.bannerImage !== undefined)
+      cleanData.bannerImage = data.bannerImage;
+    if (data.phone !== undefined) cleanData.phone = data.phone;
+    if (data.address !== undefined) cleanData.address = data.address;
+    if (data.businessHours !== undefined)
+      cleanData.businessHours = data.businessHours;
+    if (data.paymentMethods !== undefined)
+      cleanData.paymentMethods = data.paymentMethods;
+
     const updatedCompany = await prisma.company.update({
       where: { id: companyId },
-      data: {
-        name: data.name,
-        description: data.description,
-        whatsapp: data.whatsapp,
-        minimumOrder: data.minimumOrder,
-        profileImage: data.profileImage,
-        bannerImage: data.bannerImage,
-        phone: data.phone,
-        address: data.address as any, // Prisma expects Json, but types define specific structure
-        businessHours: data.businessHours as any,
-        paymentMethods: data.paymentMethods,
-      },
+      data: cleanData,
     });
 
     revalidatePath("/empresa/dashboard/informacoes");
