@@ -22,7 +22,8 @@ export default async function HomePage() {
               Cardápio Online
             </h1>
             <p className="text-white/80 text-lg">
-              Encontre os melhores restaurantes e faça seu pedido
+              Veja exemplos de estabelecimentos que se adequam ao seu e adquira
+              o seu cardápio online.
             </p>
           </div>
         </div>
