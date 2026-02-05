@@ -15,7 +15,7 @@ export function SiteFooter() {
           />
         </div>
         <p className="text-xs text-white text-center">
-          Desenvolvido por CO &copy; 2026 | Todos os direitos reservados
+          Desenvolvido por CO &copy; 2026 | Todos os direitos reservados.
         </p>
       </div>
     </footer>
